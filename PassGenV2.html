@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Password Generator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      text-align: center;
+      width: 380px;
+      animation: fadeIn 1s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(20px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+    h1 {
+      font-size: 22px;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+    button {
+      background: #6a11cb;
+      background: linear-gradient(315deg, #6a11cb 0%, #2575fc 74%);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      margin: 10px 5px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: transform 0.2s;
+    }
+    button:hover {
+      transform: scale(1.05);
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #444;
+    }
+    .counter {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔐 Smart Password Generator</h1>
+    <input type="text" id="username" placeholder="Enter Full Name (e.g. Nittala Satya Srinivas)">
+    <input type="text" id="empcode" placeholder="Enter Employee Code">
+    <br>
+    <button onclick="generatePassword()">Generate Password</button>
+    <button onclick="copyPassword()">Copy to Clipboard</button>
+    <button onclick="resetCounter()">Reset Counter</button>
+    <div class="result" id="result"></div>
+    <div class="counter" id="visitCounter"></div>
+  </div>
+
+  <script>
+    // Visit Counter logic
+    if (localStorage.visitCount) {
+      localStorage.visitCount = Number(localStorage.visitCount) + 1;
+    } else {
+      localStorage.visitCount = 1;
+    }
+    updateCounter();
+
+    function updateCounter() {
+      document.getElementById("visitCounter").innerText = 
+        "👀 Website visits: " + localStorage.visitCount;
+    }
+
+    function resetCounter() {
+      localStorage.visitCount = 0;
+      updateCounter();
+      alert("🔄 Counter reset successfully!");
+    }
+
+    function generatePassword() {
+      const username = document.getElementById("username").value.trim();
+      const empcode = document.getElementById("empcode").value.trim();
+
+      if (!username || !empcode) {
+        document.getElementById("result").innerText = "⚠️ Please enter Name and Employee Code!";
+        return;
+      }
+
+      const parts = username.split(" ");
+      const firstName = parts[0];
+      const lastName = parts[parts.length - 1];
+
+      let firstPart = firstName.substring(0, 4);
+      let lastPart = lastName.slice(-3);
+
+      let rawPassword = lastPart + firstPart + empcode;
+
+      // Replacement rules
+      rawPassword = rawPassword.replace(/a/g, "@")
+                               .replace(/s/g, "$")
+                               .replace(/i/g, "!")
+                               .replace(/o/g, "0")
+                               .replace(/l/g, "1");
+
+      // First letter capital
+      rawPassword = rawPassword.charAt(0).toUpperCase() + rawPassword.slice(1);
+
+      // Ensure password between 12–16 chars
+      if (rawPassword.length > 16) {
+        rawPassword = rawPassword.substring(0, 16);
+      }
+
+      document.getElementById("result").innerText = "✅ Password: " + rawPassword;
+    }
+
+    function copyPassword() {
+      const resultText = document.getElementById("result").innerText.replace("✅ Password: ", "");
+      if (resultText) {
+        navigator.clipboard.writeText(resultText);
+        alert("📋 Password copied: " + resultText);
+      } else {
+        alert("⚠️ Please generate a password first!");
+      }
+    }
+  </script>
+</body>
+</html>
