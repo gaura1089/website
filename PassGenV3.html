@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Password Generator</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+    input, select { padding: 8px; margin: 5px; width: 250px; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; margin: 5px; }
+    #result { margin-top: 20px; font-weight: bold; font-size: 18px; text-align: left; display: inline-block; }
+    .error { color: red; }
+    .success { color: green; }
+    .pw-item { margin: 5px 0; }
+    .pw-btn { margin-left: 10px; font-size: 12px; padding: 4px 8px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h2>Employee Password Generator</h2>
+  <input type="text" id="name" placeholder="Enter Full Name"><br>
+  <input type="text" id="empCode" placeholder="Enter Employee Code"><br>
+
+  <label for="length">Select Password Length (12–16):</label><br>
+  <select id="length">
+    <option value="12">12</option>
+    <option value="13">13</option>
+    <option value="14">14</option>
+    <option value="15">15</option>
+    <option value="16">16</option>
+  </select><br>
+
+  <button onclick="generatePasswords()">Generate Passwords</button>
+ 
+  <div id="result"></div>
+
+  <script>
+    function applyReplacements(text) {
+      return text.replace(/a/gi, '@')
+                 .replace(/s/gi, '$')
+                 .replace(/i/gi, '!')
+                 .replace(/o/gi, '0')
+                 .replace(/l/gi, '1');
+    }
+
+    function adjustLength(pwd, targetLength) {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@!$#%";
+      while (pwd.length < targetLength) {
+        pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      if (pwd.length > targetLength) {
+        pwd = pwd.substring(0, targetLength);
+      }
+      return pwd;
+    }
+
+    function buildPassword(fullName, empCode, targetLength) {
+      let parts = fullName.split(" ");
+      let firstName = parts[0];
+      let lastName = parts[parts.length - 1];
+
+      let firstPart = firstName.substring(0, 4);
+      let lastPart = lastName.substring(lastName.length - 3);
+
+      let rawPassword = lastPart + firstPart + empCode;
+      let finalPassword = applyReplacements(rawPassword);
+
+      // Capitalize first letter
+      finalPassword = finalPassword.charAt(0).toUpperCase() + finalPassword.slice(1);
+
+      return adjustLength(finalPassword, targetLength);
+    }
+
+    function generatePasswords() {
+      let fullName = document.getElementById("name").value.trim();
+      let empCode = document.getElementById("empCode").value.trim();
+      let targetLength = parseInt(document.getElementById("length").value);
+
+      if (!fullName || !empCode) {
+        document.getElementById("result").innerHTML = "<span class='error'>⚠️ Please enter both Name and Emp Code!</span>";
+        return;
+      }
+
+      let html = "<div class='success'>✅ Generated Passwords:</div>";
+      for (let i = 1; i <= 4; i++) {
+        let pwd = buildPassword(fullName, empCode, targetLength);
+        html += `<div class='pw-item'>${i}. ${pwd}
+                   <button class='pw-btn' onclick="copyToClipboard('${pwd}')">Copy</button></div>`;
+      }
+      document.getElementById("result").innerHTML = html;
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert("✅ Password copied: " + text);
+      });
+    }
+  </script>
+</body>
+</html>

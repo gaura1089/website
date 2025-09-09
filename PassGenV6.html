@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Password Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <style>
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #10B981;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 10px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease-in-out;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center font-sans">
+
+  <div class="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-lg text-center">
+    <h1 class="text-2xl font-bold text-gray-700 mb-6">✨ Custom Password Generator ✨</h1>
+
+    <input id="username" type="text" placeholder="Enter Full Name"
+           class="w-full mb-4 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
+
+    <input id="empcode" type="text" placeholder="Enter Employee Code"
+           class="w-full mb-4 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
+
+    <!-- Dropdown for password length -->
+    <label for="length" class="block text-left text-gray-600 mb-2 font-medium">Select Password Length:</label>
+    <select id="length" class="w-full mb-6 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
+      <option value="8">8</option>
+      <option value="9">9</option>
+      <option value="10">10</option>
+      <option value="11">11</option>
+      <option value="12" selected>12 (Default)</option>
+      <option value="13">13</option>
+      <option value="14">14</option>
+      <option value="15">15</option>
+      <option value="16">16</option>
+    </select>
+
+    <button onclick="generatePassword()"
+            class="bg-indigo-600 text-white px-6 py-2 rounded-xl shadow hover:bg-indigo-700 transition">
+      🚀 Generate Password
+    </button>
+
+    <div id="result" class="mt-6 text-xl font-semibold text-gray-800"></div>
+
+    <div class="flex gap-4 justify-center mt-4">
+      <button onclick="copyPassword()"
+              class="bg-green-500 text-white px-4 py-2 rounded-xl shadow hover:bg-green-600 transition">
+        📋 Copy
+      </button>
+      <button onclick="downloadCSV()"
+              class="bg-blue-500 text-white px-4 py-2 rounded-xl shadow hover:bg-blue-600 transition">
+        📥 Download CSV
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast">Copied to Clipboard ✅</div>
+
+  <script>
+    const replacements = { 'a': '@', 's': '$', 'i': '!', 'o': '0', 'l': '1' };
+    let generatedPasswords = [];
+
+    function transformText(text) {
+      return text.split('').map(ch => replacements[ch.toLowerCase()] || ch).join('');
+    }
+
+    function generatePassword() {
+      const username = document.getElementById('username').value.trim();
+      const empcode = document.getElementById('empcode').value.trim();
+      const length = parseInt(document.getElementById('length').value);
+
+      if (!username || !empcode) {
+        document.getElementById('result').innerHTML = "⚠️ Please enter both fields.";
+        return;
+      }
+
+      const parts = username.split(" ");
+      const firstName = parts[0] || "";
+      const lastName = parts[parts.length - 1] || "";
+
+      let rawPass = (lastName.slice(-3) + firstName.slice(0, 4) + empcode);
+      rawPass = transformText(rawPass);
+
+      rawPass = rawPass.charAt(0).toUpperCase() + rawPass.slice(1);
+
+      // Adjust password length
+      if (rawPass.length > length) {
+        rawPass = rawPass.slice(0, length);
+      } else if (rawPass.length < length) {
+        const extra = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%";
+        while (rawPass.length < length) {
+          rawPass += extra.charAt(Math.floor(Math.random() * extra.length));
+        }
+      }
+
+      document.getElementById('result').innerHTML = "🔑 " + rawPass;
+      generatedPasswords.push({ username, empcode, password: rawPass });
+    }
+
+    function copyPassword() {
+      const text = document.getElementById('result').innerText.replace("🔑 ", "");
+      if (!text) return;
+
+      navigator.clipboard.writeText(text);
+
+      const toast = document.getElementById('toast');
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2000);
+    }
+
+    function downloadCSV() {
+      if (generatedPasswords.length === 0) return;
+
+      let csvContent = "Username,EmpCode,Password\n";
+      generatedPasswords.forEach(row => {
+        csvContent += `${row.username},${row.empcode},${row.password}\n`;
+      });
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      saveAs(blob, "passwords.csv");
+    }
+  </script>
+</body>
+</html> 
