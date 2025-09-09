@@ -1,0 +1,103 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Generator</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 350px; text-align: center; }
+    input { width: 90%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; }
+    button { background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin: 5px; }
+    button:hover { background: #45a049; }
+    .output { margin-top: 20px; font-weight: bold; color: #333; }
+    .success { color: green; font-size: 14px; margin-top: 10px; display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Password Generator</h2>
+    <input type="text" id="username" placeholder="Enter Full Name (e.g. Rahul Gupta)"><br>
+    <input type="text" id="empcode" placeholder="Enter Employee Code"><br>
+    <button onclick="generatePassword()">Generate Password</button>
+    <button onclick="copyPassword()">Copy Password</button>
+    <div class="output" id="result"></div>
+    <div class="success" id="successMsg">✅ Password copied successfully!</div>
+  </div>  <script>
+    let generatedPassword = "";
+
+    function generatePassword() {
+      let username = document.getElementById("username").value.trim();
+      let empcode = document.getElementById("empcode").value.trim();
+      let successMsg = document.getElementById("successMsg");
+      successMsg.style.display = "none";
+
+      if(!username || !empcode){
+        document.getElementById("result").innerText = "⚠ Please enter both username and employee code";
+        return;
+      }
+
+      let parts = username.split(" ");
+      if(parts.length < 2){
+        document.getElementById("result").innerText = "⚠ Please enter First and Last name";
+        return;
+      }
+
+      let firstName = parts[0].toLowerCase();
+      let lastName = parts[1].toLowerCase();
+
+      let last3 = lastName.slice(-3);
+      let first4 = firstName.slice(0,4);
+
+      let rawPassword = last3 + first4 + empcode;
+
+      // Substitution rules
+      let substitutions = { 'a':'@', 's':'$', 'i':'!', 'o':'0', 'l':'1'};
+      let finalPassword = rawPassword.replace(/[asilo]/g, char => substitutions[char] || char);
+
+      // Ensure first alphabet character is capitalized
+      let chars = finalPassword.split("");
+      for (let i = 0; i < chars.length; i++) {
+        if(/[a-z]/.test(chars[i])) {
+          chars[i] = chars[i].toUpperCase();
+          break;
+        }
+      }
+      finalPassword = chars.join("");
+
+      // Add random special characters/digits for extra strength
+      let extras = "!@#$%^&*?_";
+      let randChar = extras.charAt(Math.floor(Math.random() * extras.length));
+      let randDigit = Math.floor(Math.random() * 10);
+
+      finalPassword += randChar + randDigit;
+
+      // Ensure length between 12-16 by trimming or padding if needed
+      if(finalPassword.length > 16) {
+        finalPassword = finalPassword.slice(0,16);
+      } else if(finalPassword.length < 12) {
+        while(finalPassword.length < 12) {
+          finalPassword += Math.floor(Math.random() * 10);
+        }
+      }
+
+      generatedPassword = finalPassword;
+      document.getElementById("result").innerText = "Generated Password: " + finalPassword;
+    }
+
+    function copyPassword() {
+      if(generatedPassword) {
+        navigator.clipboard.writeText(generatedPassword).then(() => {
+          document.getElementById("successMsg").style.display = "block";
+          document.getElementById("username").value = "";
+          document.getElementById("empcode").value = "";
+          document.getElementById("result").innerText = "";
+          generatedPassword = "";
+        }).catch(err => {
+          alert("Failed to copy: " + err);
+        });
+      } else {
+        alert("Please generate a password first!");
+      }
+    }
+  </script></body>
+</html> 
